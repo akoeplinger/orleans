@@ -259,7 +259,7 @@ namespace Orleans.Runtime.MembershipService
                 while (await results.ReadAsync())
                 {
                     string eTag;
-                    var entry = ConvertFromRow(results, out eTag, out version, out versionETag);
+                    var entry = ConvertFromRow((SqlDataReader)results, out eTag, out version, out versionETag);
                     memEntries.Add(new Tuple<MembershipEntry, string>(entry, eTag));
                 }
             }

@@ -342,7 +342,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <ClientGenReferences>System.Data.dll;System.Data.Services.Client.dll;</ClientGenReferences>
+    <ClientGenReferences>System.Management.dll;System.Data.dll;System.Data.Services.Client.dll;</ClientGenReferences>
     <!-- $(SolutionDir)Dependencies\Windows-Azure-SDK\v$(AzureSdkVersion)\ref\Microsoft.WindowsAzure.StorageClient.dll;$(SolutionDir)Dependencies\Windows-Azure-SDK\v$(AzureSdkVersion)\ref\Microsoft.WindowsAzure.Diagnostics.dll;$(SolutionDir)Dependencies\Windows-Azure-SDK\v$(AzureSdkVersion)\ref\Microsoft.WindowsAzure.ServiceRuntime.dll -->
   </PropertyGroup>
   <Target Name="GenerateVersionNumber" BeforeTargets="VersionInit" Condition="'$(BuildingInsideVisualStudio)' != 'true'" Outputs="$(SolutionDir)Build\Version.txt">
@@ -367,9 +367,24 @@
     <Touch Files="$(ProjectDir)Properties\orleans.codegen.cs" ForceTouch="true" AlwaysCreate="true" ContinueOnError="true" Condition="!Exists('$(ProjectDir)Properties\orleans.codegen.cs')" />
     <!-- Extract the sources for clientgen -->
     <Message Text="[OrleansDllBootstrapUsingClientGen] - Searching for ClientGen sources" Importance="high" />
-    <XmlPeek Namespaces="&lt;Namespace Prefix='msb' Uri='http://schemas.microsoft.com/developer/msbuild/2003'/&gt;" XmlInputPath="$(SolutionDir)\ClientGenerator\ClientGenerator.csproj" Query="/msb:Project/msb:ItemGroup/msb:Compile/@Include">
+    <!--<XmlPeek Namespaces="&lt;Namespace Prefix='msb' Uri='http://schemas.microsoft.com/developer/msbuild/2003'/&gt;" XmlInputPath="$(SolutionDir)\ClientGenerator\ClientGenerator.csproj" Query="/msb:Project/msb:ItemGroup/msb:Compile/@Include">
       <Output TaskParameter="Result" ItemName="Peeked" />
-    </XmlPeek>
+    </XmlPeek>-->  
+    <ItemGroup>
+        <Peeked Include="ClientGenerator.cs" />
+        <Peeked Include="CSharpCodeGenerator.cs" />
+        <Peeked Include="NamespaceGenerator.cs" />
+        <Peeked Include="CodeGeneratorBase.cs" />
+        <Peeked Include="Program.cs" />
+        <Peeked Include="Properties\AssemblyInfo.cs" />
+        <Peeked Include="..\Build\GlobalAssemblyInfo.cs" />
+        <Peeked Include="Serialization\SerializationGenerator.cs" />
+        <Peeked Include="Serialization\SerializerGenerationManager.cs" />
+        <Peeked Include="Serialization\SerializerGenerationUtilities.cs" />
+        <Peeked Include="FSharpCodeGenerator.cs" />
+        <Peeked Include="VBCodeGenerator.cs" />
+    </ItemGroup>
+  
     <PropertyGroup>
       <ClientGenSources>@(Peeked-&gt;'$(SolutionDir)ClientGenerator\%(Identity)')</ClientGenSources>
     </PropertyGroup>
@@ -384,7 +399,7 @@
     <csc Sources="$(ClientGenSources)" OutputAssembly="$(ProjectDir)$(IntermediateOutputPath)Generated\ClientGenerator.exe" EmitDebugInformation="true" PdbFile="$(PdbFile)" Platform="$(PlatformTarget)" References="$(ClientGenReferences);$(ProjectDir)$(IntermediateOutputPath)Generated\$(TargetName)$(TargetExt)" DefineConstants="$(DefineConstants),CLIENTGEN_PROJECT" KeyFile="$(AssemblyOriginatorKeyFile)" />
     <!-- Finally invoke ClientGenerator on the recently built Orleans dll-->
     <Message Text="[OrleansDllBootstrapUsingClientGen] - Preprocessing $(TargetName)$(TargetExt) with ClientGenerator.exe" Importance="high" />
-    <Exec Command="&quot;$(ProjectDir)$(IntermediateOutputPath)Generated\ClientGenerator.exe&quot; /nomerge /bootstrap &quot;/in:$(IntermediateOutputPath)Generated\$(TargetName)$(TargetExt)&quot; &quot;/keyfile:$(AssemblyOriginatorKeyFile)&quot; &quot;/reference:@(ReferencePath)&quot; &quot;/sources:@(Compile)&quot; &quot;/define:$(DefineConstants)&quot; $(ClientGenOptions)" />
+    <Exec Command="mono &quot;$(ProjectDir)$(IntermediateOutputPath)Generated\ClientGenerator.exe&quot; /nomerge /bootstrap &quot;/in:$(IntermediateOutputPath)Generated\$(TargetName)$(TargetExt)&quot; &quot;/keyfile:$(AssemblyOriginatorKeyFile)&quot; &quot;/reference:@(ReferencePath)&quot; &quot;/sources:@(Compile)&quot; &quot;/define:$(DefineConstants)&quot; $(ClientGenOptions)" />
   </Target>
   <Target Name="WriteArgsToFileForDebugging" AfterTargets="BeforeCompile" BeforeTargets="CoreCompile" Inputs="@(Compile);@(ReferencePath);" Outputs="$(ProjectDir)$(IntermediateOutputPath)$(TargetName)$(TargetExt)">
     <MakeDir Directories="$(IntermediateOutputPath)Generated;" />
@@ -395,7 +410,7 @@
     <WriteLinesToFile Overwrite="true" File="$(ArgsFile)" Lines="/nomerge" />
     <WriteLinesToFile File="$(ArgsFile)" Lines="/in:$(IntermediateOutputPath)$(TargetName)$(TargetExt)" />
     <WriteLinesToFile File="$(ArgsFile)" Lines="/key:$(AssemblyOriginatorKeyFile)" />
-    <WriteLinesToFile File="$(ArgsFile)" Lines="/d:$([MSBuild]::Escape($(DefineConstants)))" />
+    <WriteLinesToFile File="$(ArgsFile)" Lines="/d:TRACE" />
     <WriteLinesToFile File="$(ArgsFile)" Lines="@(Import-&gt;'/imports:%(Identity)')" />
     <WriteLinesToFile File="$(ArgsFile)" Lines="/rns:$(RootNamespace)" />
     <WriteLinesToFile File="$(ArgsFile)" Lines="@(ReferencePath-&gt;'/r:%(Identity)')" />

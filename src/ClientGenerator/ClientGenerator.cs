@@ -176,7 +176,7 @@ namespace Orleans.CodeGeneration
             var suffix = (options.TargetLanguage == Language.CSharp) ? ".codegen.cs" :
                 (options.TargetLanguage == Language.VisualBasic) ? ".codegen.vb" : ".codegen.fs";
 
-            var outputFileName = Path.Combine(options.SourcesDir, Path.GetFileNameWithoutExtension(options.InputLib.Name) + suffix);
+            var outputFileName = Path.Combine(options.SourcesDir, Path.GetFileNameWithoutExtension(options.InputLib.Name.ToLower()) + suffix);
             ConsoleText.WriteStatus("Orleans-CodeGen - Generating file {0}", outputFileName);
 
             using (var sourceWriter = new StreamWriter(outputFileName))
@@ -478,9 +478,9 @@ namespace Orleans.CodeGeneration
             unit.Namespaces.Add(referenceNameSpace);
         }
 
-        private const string CodeGenFileRelativePathCSharp = "Properties\\orleans.codegen.cs";
-        private const string CodeGenFileRelativePathFSharp = "GeneratedFiles\\orleans.codegen.fs";
-        private const string CodeGenFileRelativePathVB = "GeneratedFiles\\orleans.codegen.vb";
+        private static readonly string CodeGenFileRelativePathCSharp = "Properties" + Path.DirectorySeparatorChar + "orleans.codegen.cs";
+        private static readonly string CodeGenFileRelativePathFSharp = "GeneratedFiles" + Path.DirectorySeparatorChar + "orleans.codegen.fs";
+        private static readonly string CodeGenFileRelativePathVB = "GeneratedFiles" + Path.DirectorySeparatorChar + "orleans.codegen.vb";
 
         internal static void BuildInputAssembly(CodeGenOptions options)
         {
